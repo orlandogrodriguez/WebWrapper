@@ -8,6 +8,7 @@
 
 import UIKit
 import WebKit
+import Alamofire
 
 class ViewController: UIViewController {
     
@@ -19,7 +20,7 @@ class ViewController: UIViewController {
 
     var oCurrentResponseLabel: UILabel = {
         let label = UILabel()
-        label.text = "Current Response: "
+        label.text = "No Response"
         label.font = UIFont.boldSystemFont(ofSize: 34)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -81,6 +82,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        checkForReachability()
         setupUI()
     }
 
@@ -97,7 +99,7 @@ class ViewController: UIViewController {
         view.addSubview(oCurrentResponseLabel)
         oCurrentResponseLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 16).isActive = true
         oCurrentResponseLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -16).isActive = true
-        oCurrentResponseLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 46).isActive = true
+        oCurrentResponseLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 30 + 64 + 16).isActive = true
         oCurrentResponseLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
     
@@ -126,21 +128,71 @@ class ViewController: UIViewController {
         o500Button.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
     
+    func updateModel(status: Int) {
+        currentResponse = status
+        updateViewFromModel()
+    }
+    
+    func updateViewFromModel() {
+        if let response = currentResponse {
+            oCurrentResponseLabel.text = "Status Code: \(response)"
+        } else {
+            oCurrentResponseLabel.text = "No Response"
+        }
+    }
+    
+    // MARK: - Network
+    
+    let networkReachabilityManager = Alamofire.NetworkReachabilityManager(host: "https://httpstat.us")
+    
+    func checkForReachability() {
+        networkReachabilityManager?.listener = { status in
+            switch status {
+            case .notReachable:
+                self.navigationController?.navigationBar.barTintColor = UIColor(rgb: 0xe74c3c)
+                self.navigationController?.navigationBar.topItem?.title = "No Internet Connection"
+            case .reachable(_):
+                self.navigationController?.navigationBar.barTintColor = UIColor(rgb: 0x2ecc71)
+                self.navigationController?.navigationBar.topItem?.title = "Connection OK"
+            case .unknown:
+                print("Unknown")
+            }
+        }
+        networkReachabilityManager?.startListening()
+    }
+    
+    func sendRequest(expectedResponse: Int) {
+        if (networkReachabilityManager?.isReachable)! {
+            Alamofire.request("https://httpstat.us/\(expectedResponse)")
+                .response { response in
+                    if let request = response.request {
+                        self.oWebView.load(request)
+                        self.updateModel(status: response.response!.statusCode)
+                    }
+            }
+            self.navigationController?.navigationBar.barTintColor = UIColor(rgb: 0x2ecc71)
+            self.navigationController?.navigationBar.topItem?.title = "Connection OK"
+        } else {
+            self.navigationController?.navigationBar.barTintColor = UIColor(rgb: 0xe74c3c)
+            self.navigationController?.navigationBar.topItem?.title = "No Internet Connection"
+        }
+    }
+    
     // MARK: - Actions
     
     @objc
     func handle200() {
-        print("Pressed 200")
+        sendRequest(expectedResponse: 200)
     }
     
     @objc
     func handle404() {
-        print("Pressed 404")
+        sendRequest(expectedResponse: 404)
     }
     
     @objc
     func handle500() {
-        print("Pressed 500")
+        sendRequest(expectedResponse: 500)
     }
     
 }

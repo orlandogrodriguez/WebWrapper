@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         let mainViewController = ViewController()
         let navigationController = UINavigationController(rootViewController: mainViewController)
-        navigationController.isNavigationBarHidden = true
+        navigationController.isNavigationBarHidden = false
         mainViewController.view.backgroundColor = UIColor.white
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
