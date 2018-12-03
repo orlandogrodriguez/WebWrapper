@@ -11,7 +11,11 @@ import WebKit
 
 class ViewController: UIViewController {
     
+    // MARK: - Global Variables
+    
     var currentResponse: Int?
+    
+    // MARK: - Outlets
 
     var oCurrentResponseLabel: UILabel = {
         let label = UILabel()
@@ -44,6 +48,7 @@ class ViewController: UIViewController {
         button.tintColor = .white
         button.backgroundColor = UIColor(rgb: 0x2ecc71)
         button.layer.cornerRadius = 11
+        button.addTarget(self, action: #selector(handle200), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -55,6 +60,7 @@ class ViewController: UIViewController {
         button.tintColor = .white
         button.backgroundColor = UIColor(rgb: 0xf39c12)
         button.layer.cornerRadius = 11
+        button.addTarget(self, action: #selector(handle404), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -66,6 +72,7 @@ class ViewController: UIViewController {
         button.tintColor = .white
         button.backgroundColor = UIColor(rgb: 0xe74c3c)
         button.layer.cornerRadius = 11
+        button.addTarget(self, action: #selector(handle500), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
